@@ -7,7 +7,7 @@ NULL
 utils::globalVariables(c(
   "year","schoolyear", "schoolyear_autumn", ".", "County", "esdname", "districtname",
   "measurevalue", "numerator", "denominator", "measure", "organizationlevel",
-  "html_elements", "html_attr", "read.wa.Socrata"
+  "html_elements", "html_attr", "read.socrata"
 ))
 
 #' Fetch OSPI Kindergarten readiness scores
@@ -20,7 +20,7 @@ utils::globalVariables(c(
 get_k_readiness <- function(schoolyears) {
 
   # Filter URLs for the requested school years
-  selected_urls <- kready_urls[schoolyear_autumn %in% get(schoolyears)]
+  selected_urls <- kready_urls[schoolyear_autumn %in% schoolyears]
 
   # Define ESD query parameters
   esd_params <- c(
@@ -34,7 +34,7 @@ get_k_readiness <- function(schoolyears) {
     query_url <- paste0(url, "?organizationlevel=District&esdname=", esd_param)
 
     tryCatch({
-      data <- read.wa.Socrata(query_url)
+      data <- read.socrata(query_url)
       if (nrow(data) > 0) {
         data$schoolyear_autumn <- year
         return(data)

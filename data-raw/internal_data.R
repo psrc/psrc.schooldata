@@ -43,7 +43,7 @@ kready_urls <- data.frame(
                  "https://data.wa.gov/resource/vumg-9sgs.json",  # 2023-24
                  "https://data.wa.gov/resource/3ji8-ykgj.json"   # 2024-25
   )
-)
+) %>% setDT()
 
 #' Identify kindergarten readiness URL
 #'
