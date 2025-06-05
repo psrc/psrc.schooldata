@@ -1,0 +1,25 @@
+Package: psrc.schooldata
+Type: Package
+Title: Fetch school data for the Central Puget Sound region
+Version: 0.1.0
+Authors@R: c(
+    person("Michael", "Jensen", email = "mjensen@psrc.org", role = "cre"))
+Maintainer: Michael Jensen <mjensen@psrc.org>
+Description: Functions to retrieve school data from OSPI and other state or local sources for the Central Puget Sound region.
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Imports: 
+    data.table,
+    magrittr,
+    RSocrata,
+    stringr,
+    rvest
+Suggests: 
+    rmarkdown,
+    knitr,
+    testthat (>= 3.0.0),
+    R.utils
+Depends: 
+    R (>= 3.5)
