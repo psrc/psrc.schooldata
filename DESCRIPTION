@@ -13,9 +13,7 @@ RoxygenNote: 7.3.2
 Imports: 
     data.table,
     magrittr,
-    RSocrata,
-    stringr,
-    rvest
+    RSocrata
 Suggests: 
     rmarkdown,
     knitr,

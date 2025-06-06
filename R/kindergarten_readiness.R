@@ -5,9 +5,9 @@ NULL
 
 # Suppress specific warnings for this function
 utils::globalVariables(c(
-  "year","schoolyear", "schoolyear_autumn", ".", "County", "esdname", "districtname",
+  "year", "schoolyear", "schoolyear_autumn", "county", "esdname", "districtname",
   "measurevalue", "numerator", "denominator", "measure", "organizationlevel",
-  "html_elements", "html_attr", "read.socrata"
+  "esdorganizationid", "districtorganizationid", "."
 ))
 
 #' Fetch OSPI Kindergarten readiness scores
@@ -15,7 +15,8 @@ utils::globalVariables(c(
 #' @param schoolyears vector of initial years of schoolyears, i.e. `c(2023, 2024, 2025)` for multiple years
 #' @return data table with combined results from all requested school years
 #'
-#' @import RSocrata
+#' @importFrom RSocrata read.socrata
+#'
 #' @export
 get_k_readiness <- function(schoolyears) {
 
@@ -34,7 +35,7 @@ get_k_readiness <- function(schoolyears) {
     query_url <- paste0(url, "?organizationlevel=District&esdname=", esd_param)
 
     tryCatch({
-      data <- read.socrata(query_url)
+      data <- read_socrata_credentialed(query_url)
       if (nrow(data) > 0) {
         data$schoolyear_autumn <- year
         return(data)
@@ -45,6 +46,17 @@ get_k_readiness <- function(schoolyears) {
       warning(paste("Failed to fetch data for school year", year, "and ESD", esd_param, ":", e$message))
       return(NULL)
     })
+  }
+
+  # Helper function to apply credentials to read.socrata
+  # -- otherwise only a sample of the table is returned
+  read_socrata_credentialed <- function(URL){
+    x <- read.socrata(
+      url       = URL,
+      app_token = Sys.getenv("DATAWAGOV_APPTOKEN"),
+      email     = Sys.getenv("MYEMAIL"),
+      password  = Sys.getenv("DATAWAGOV_CRED"))
+    return(x)
   }
 
   # Fetch data for all URL-ESD combinations
@@ -69,17 +81,13 @@ get_k_readiness <- function(schoolyears) {
 
   # Combine all results and process
   reported <- rbindlist(all_reported, use.names = TRUE, fill = TRUE) %>%
+    .[county %in% c("King", "Kitsap", "Pierce", "Snohomish") &
+      measure == "NumberofDomainsReadyforKindergarten" &
+      measurevalue == "6" & !is.na(county)] %>%
     .[, c("numerator", "denominator") := lapply(.SD, as.integer), .SDcols = c("numerator", "denominator")] %>%
-    .[, County := fcase(
-      grepl("121$", esdname) & grepl(county_schooldist_rgx$King,      districtname),  "King",
-      grepl("114$", esdname) & grepl(county_schooldist_rgx$Kitsap,    districtname),  "Kitsap",
-      grepl("121$", esdname) & grepl(county_schooldist_rgx$Pierce,    districtname),  "Pierce",
-      grepl("189$", esdname) & grepl(county_schooldist_rgx$Snohomish, districtname),  "Snohomish"
-    )] %>%
-    .[!is.na(County)] %>%
-    .[measure == "NumberofDomainsReadyforKindergarten" & measurevalue == "6"] %>%
-    .[, c("esdname", "organizationlevel") := NULL] %>%
-    setorder(schoolyear, County)
+    .[, c("esdname", "organizationlevel","washingtonstatecode","washingtonstatename",
+          "organizationid","esdorganizationid","domain","developmentlevel") := NULL] %>%
+    setorder(schoolyear, county, districtorganizationid)
 
   return(reported)
 }
